@@ -183,7 +183,7 @@
 <div id="app" style="display:none;">
   <div class="topbar">
     <div class="topbar-title">CIT <span>Compliance Tracker</span></div>
-    <div class="topbar-key" onclick="resetKey()">API key active  ✕</div>
+    
   </div>
   <div class="app" style="display:block;">
     <div class="tabs" id="tabBar">
@@ -273,15 +273,16 @@ const DOMAIN_SHORT = {
 
 const STORAGE_KEY = 'cit_tracker_registry';
 const API_KEY_STORAGE = 'cit_tracker_apikey';
+const HARDCODED_KEY = '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';
 
 let registry = {};
 let activeDomain = 'all';
 let apiKey = '';
 
 function init() {
-  const stored = localStorage.getItem(API_KEY_STORAGE);
-  if (stored) { apiKey = stored; showApp(); }
+  apiKey = HARDCODED_KEY;
   loadRegistry();
+  showApp();
 }
 
 function saveKey() {
