@@ -335,7 +335,7 @@ async function callClaude(prompt) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: 'claude-opus-4-5',
-      max_tokens: 4000,
+      max_tokens: 6000,
       system: 'You are a regulatory compliance specialist with deep expertise in behavioral health law, special education law, and crisis intervention regulations across all US states. Provide thorough, specific responses with statute citations. Use **Bold Headers** for each section. Flag anything requiring verification.',
       messages: [{ role: 'user', content: prompt }]
     })
@@ -355,52 +355,52 @@ async function runSearch() {
   area.classList.remove('empty');
   area.innerHTML = '<div style="font-size:12px;color:#8a95a3;"><span class="spinner spinner-dark"></span>Querying Claude for ' + state + ' regulations…</div>';
 
-  const prompt = `Provide a comprehensive crisis intervention compliance summary for ${state} covering ${DOMAIN_LABELS[activeDomain]}.
+  const prompt = `Provide a crisis intervention compliance summary for ${state} covering ${DOMAIN_LABELS[activeDomain]}.
 
-Use these bold headers:
+Be concise and specific — bullet points preferred over long paragraphs. Use these bold headers:
 
 **Governing Framework**
-State agency, primary statutes and administrative code sections with citation numbers.
+State agency, primary statutes and code sections with citation numbers.
 
 **Physical Restraint Requirements**
-Permitted/prohibited techniques, who may apply, conditions required, time limits, monitoring.
+Permitted/prohibited techniques, who may apply, conditions, time limits, monitoring. Be brief.
 
 **Seclusion / Isolation Policies**
-Whether permitted, conditions, room requirements, time limits, observation requirements.
+Whether permitted, conditions, room requirements, time limits, monitoring. Be brief.
 
 **Crisis Intervention Training (CIT) Requirements**
 Mandatory programs, approved providers, who must be trained, settings, initial hours, renewal frequency. Named programs (CPI, MANDT, ProACT, TCI, Ukeru, NAPPI).
 
 **De-escalation Requirements**
-Required protocols, training mandates separate from restraint training.
+Required protocols and training mandates. Be brief.
 
 **Documentation & Incident Reporting**
-Timeline, required recipients, content requirements, record retention.
+Timeline, recipients, content, retention. Be brief.
 
 **Parental / Guardian Notification**
-Timeline, method, required disclosures.
+Timeline, method, disclosures. Be brief.
 
 **Settings Covered**
-Public schools, private schools, residential treatment, hospitals, community mental health, group homes, juvenile justice, etc.
+List applicable settings briefly.
 
 **Funding Sources & Financial Incentives**
-This is critical — identify all funding mechanisms available in ${state} for crisis intervention training:
-- State budget line items or appropriations specifically for CIT or restraint reduction training
-- Specific legislation that includes funding for training programs (e.g. bills like Oregon SB 283 that funded CPI training)
-- Federal funding streams being used for CIT in this state (IDEA Part B, SAMHSA grants, Title IV-A Student Support, Medicaid reimbursement, ESSER funds)
-- State grants or competitive funding available to schools, hospitals, or facilities for training costs
-- Any state-run training programs offered at no cost to providers
-- Pending legislation that includes training funding components
-- Any public-private partnerships or foundation funding for CIT in this state
+This section is critical — be thorough here:
+- State budget appropriations specifically for CIT or restraint reduction training
+- Specific legislation with funding for training (cite bill numbers, e.g. Oregon SB 283)
+- Federal funding streams used in this state (IDEA Part B, SAMHSA grants, Title IV-A, Medicaid reimbursement, ESSER)
+- State grants available to schools or facilities for training costs
+- No-cost state training programs
+- Pending legislation with training funding components
+- Public-private partnerships or foundation funding
 
 **Key Citations**
-All statute numbers, administrative code sections, guidance documents.
+All statute numbers, code sections, guidance documents.
 
 **State Agency & Verification**
 Agency name and website URL.
 
 **Verification Flags**
-Anything uncertain, recently changed, or where federal rules may interact.`;
+Anything uncertain or recently changed.`;
 
   try {
     const text = await callClaude(prompt);
