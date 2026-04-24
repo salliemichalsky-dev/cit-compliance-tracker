@@ -383,6 +383,16 @@ Timeline, method, required disclosures.
 **Settings Covered**
 Public schools, private schools, residential treatment, hospitals, community mental health, group homes, juvenile justice, etc.
 
+**Funding Sources & Financial Incentives**
+This is critical — identify all funding mechanisms available in ${state} for crisis intervention training:
+- State budget line items or appropriations specifically for CIT or restraint reduction training
+- Specific legislation that includes funding for training programs (e.g. bills like Oregon SB 283 that funded CPI training)
+- Federal funding streams being used for CIT in this state (IDEA Part B, SAMHSA grants, Title IV-A Student Support, Medicaid reimbursement, ESSER funds)
+- State grants or competitive funding available to schools, hospitals, or facilities for training costs
+- Any state-run training programs offered at no cost to providers
+- Pending legislation that includes training funding components
+- Any public-private partnerships or foundation funding for CIT in this state
+
 **Key Citations**
 All statute numbers, administrative code sections, guidance documents.
 
@@ -493,7 +503,7 @@ async function recheckState(state, btn) {
   if (!domains.length) return;
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner spinner-dark"></span>Checking…'; }
   for (const domain of domains) {
-    const prompt = `Update the crisis intervention compliance summary for ${state} covering ${DOMAIN_LABELS[domain]||domain}. Provide a refreshed complete summary noting any recent changes. Use the same bold section headers as before.`;
+    const prompt = `Update the crisis intervention compliance summary for ${state} covering ${DOMAIN_LABELS[domain]||domain}. Provide a refreshed complete summary noting any recent changes. Use the same bold section headers as before, including a Funding Sources & Financial Incentives section covering state appropriations, federal funding streams (IDEA, SAMHSA, Title IV-A, Medicaid), grants, and any specific legislation funding CIT training in this state.`;
     try { const text = await callClaude(prompt); registry[state][domain] = { content: text, lastChecked: new Date().toISOString() }; } catch(e) {}
   }
   registry[state].lastChecked = new Date().toISOString();
