@@ -219,6 +219,8 @@
     </div>
 
     <div id="tab-registry" style="display:none;">
+      <div id="registryLoading" style="text-align:center;padding:2rem;font-size:13px;color:#8a95a3;"><span class="spinner spinner-dark"></span>Loading shared registry…</div>
+      <div id="registryContent" style="display:none;">
       <div class="summary-row">
         <div class="metric"><div class="metric-label">States tracked</div><div class="metric-value" id="metricTotal">0</div></div>
         <div class="metric"><div class="metric-label">Up to date</div><div class="metric-value" id="metricCurrent">0</div></div>
@@ -241,6 +243,7 @@
         </div>
         <div id="detailContent"></div>
       </div>
+      </div><!-- end registryContent -->
     </div>
 
     <div id="tab-monitor" style="display:none;">
@@ -275,12 +278,14 @@ const STORAGE_KEY = 'cit_tracker_registry';
 const API_KEY_STORAGE = 'cit_tracker_apikey';
 
 
+const WORKER_URL = 'https://cit-proxy.sallie-michalsky.workers.dev';
+
 let registry = {};
 let activeDomain = 'all';
 let apiKey = '';
 
-function init() {
-  loadRegistry();
+async function init() {
+  await loadRegistry();
   showApp();
 }
 
@@ -305,11 +310,28 @@ function resetKey() {
   location.reload();
 }
 
-function loadRegistry() {
-  try { const r = localStorage.getItem(STORAGE_KEY); if (r) registry = JSON.parse(r); } catch(e) { registry = {}; }
+async function loadRegistry() {
+  try {
+    const resp = await fetch(WORKER_URL + '/registry');
+    const data = await resp.json();
+    registry = data || {};
+  } catch(e) {
+    console.error('Failed to load registry:', e);
+    registry = {};
+  }
 }
 
-function saveRegistryToStorage() { localStorage.setItem(STORAGE_KEY, JSON.stringify(registry)); }
+async function saveRegistryToStorage() {
+  try {
+    await fetch(WORKER_URL + '/registry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(registry)
+    });
+  } catch(e) {
+    console.error('Failed to save registry:', e);
+  }
+}
 
 document.getElementById('tabBar').addEventListener('click', e => {
   if (!e.target.matches('.tab')) return;
@@ -428,6 +450,8 @@ async function saveResult(state, domain, btn) {
 }
 
 function renderRegistry() {
+  document.getElementById('registryLoading').style.display = 'none';
+  document.getElementById('registryContent').style.display = '';
   const filter = document.getElementById('filterStatus').value;
   const now = new Date();
   let total = 0, current = 0, stale = 0;
