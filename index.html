@@ -442,7 +442,7 @@ async function saveResult(state, domain, btn) {
   if (!registry[state]) registry[state] = { name: state };
   registry[state][domain] = { content: text, lastChecked: new Date().toISOString() };
   registry[state].lastChecked = new Date().toISOString();
-  saveRegistryToStorage();
+  await saveRegistryToStorage();
   btn.textContent = '✓ Saved';
   btn.disabled = true;
   renderRegistry();
@@ -531,7 +531,7 @@ async function recheckState(state, btn) {
     try { const text = await callClaude(prompt); registry[state][domain] = { content: text, lastChecked: new Date().toISOString() }; } catch(e) {}
   }
   registry[state].lastChecked = new Date().toISOString();
-  saveRegistryToStorage();
+  await saveRegistryToStorage();
   renderRegistry();
   renderMonitor();
   if (btn) { btn.disabled = false; btn.textContent = 'Re-check →'; }
