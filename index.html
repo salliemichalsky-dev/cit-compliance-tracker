@@ -199,6 +199,7 @@
         <span class="pill" data-domain="restraints">Physical restraints</span>
         <span class="pill" data-domain="seclusion">Seclusion / isolation</span>
         <span class="pill" data-domain="cit">CIT training requirements</span>
+        <span class="pill" data-domain="approval">Program approval process</span>
         <span class="pill" data-domain="deescalation">De-escalation mandates</span>
         <span class="pill" data-domain="documentation">Documentation / reporting</span>
         <span class="pill" data-domain="parental">Parental notification</span>
@@ -261,10 +262,11 @@
 const STATES = ['Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut','Delaware','District of Columbia','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan','Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire','New Jersey','New Mexico','New York','North Carolina','North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island','South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont','Virginia','Washington','West Virginia','Wisconsin','Wyoming'];
 
 const DOMAIN_LABELS = {
-  all: 'all crisis intervention regulation domains (physical restraints, seclusion, CIT training, de-escalation, documentation, and parental notification)',
+  all: 'all crisis intervention regulation domains (physical restraints, seclusion, CIT training, program approval processes, de-escalation, documentation, and parental notification)',
   restraints: 'physical restraint use regulations',
   seclusion: 'seclusion and isolation policies',
   cit: 'crisis intervention training (CIT) certification and requirements',
+  approval: 'crisis intervention training program approval processes — specifically whether the state has a formal approval or vetting committee for CIT programs, what that process looks like, and how difficult it is to get a program approved',
   deescalation: 'de-escalation training mandates',
   documentation: 'documentation and incident reporting requirements',
   parental: 'parental and guardian notification requirements'
@@ -272,7 +274,8 @@ const DOMAIN_LABELS = {
 
 const DOMAIN_SHORT = {
   all:'All domains', restraints:'Physical restraints', seclusion:'Seclusion / isolation',
-  cit:'CIT training', deescalation:'De-escalation', documentation:'Documentation', parental:'Parental notification'
+  cit:'CIT training', approval:'Program approval process', deescalation:'De-escalation',
+  documentation:'Documentation', parental:'Parental notification'
 };
 
 const STORAGE_KEY = 'cit_tracker_registry';
@@ -406,6 +409,18 @@ Timeline, method, disclosures. Be brief.
 **Settings Covered**
 List applicable settings briefly.
 
+**Crisis Intervention Program Approval Process**
+This is critical sales intelligence — be as specific as possible:
+- Does ${state} have a formal state-level approval, vetting, or endorsement process for crisis intervention training programs (e.g. PCM, CPI, MANDT, TCI, ProACT, Ukeru)?
+- If yes: What body oversees approvals? (state committee, agency review board, department of education panel, etc.)
+- What is the application or approval process? (submission requirements, review timeline, fees)
+- How difficult or burdensome is the approval process in practice?
+- Are there currently approved programs listed, and which ones? (name them)
+- Is there an exclusive or preferred vendor relationship with any program?
+- If no formal approval process: Is the market open to any evidence-based program, or are there informal preferences?
+- Any pending changes to the approval process?
+- Compare to Maryland (has a formal PCM approval committee) and Wyoming (open market, no approval process) as reference points
+
 **Funding Sources & Financial Incentives**
 This section is critical — be thorough here:
 - State budget appropriations specifically for CIT or restraint reduction training
@@ -537,7 +552,7 @@ async function recheckState(state, btn) {
   if (!domains.length) return;
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner spinner-dark"></span>Checking…'; }
   for (const domain of domains) {
-    const prompt = `Update the crisis intervention compliance summary for ${state} covering ${DOMAIN_LABELS[domain]||domain}. Provide a refreshed complete summary noting any recent changes. Use the same bold section headers as before, including a Funding Sources & Financial Incentives section covering state appropriations, federal funding streams (IDEA, SAMHSA, Title IV-A, Medicaid), grants, and any specific legislation funding CIT training in this state.`;
+    const prompt = `Update the crisis intervention compliance summary for ${state} covering ${DOMAIN_LABELS[domain]||domain}. Provide a refreshed complete summary noting any recent changes. Use the same bold section headers as before, including a Crisis Intervention Program Approval Process section (does the state have a formal approval committee or vetting process for CIT programs, how difficult is it, which programs are currently approved) and a Funding Sources & Financial Incentives section covering state appropriations, federal funding streams (IDEA, SAMHSA, Title IV-A, Medicaid), grants, and any specific legislation funding CIT training in this state.`;
     try { const text = await callClaude(prompt); registry[state][domain] = { content: text, lastChecked: new Date().toISOString() }; } catch(e) {}
   }
   registry[state].lastChecked = new Date().toISOString();
