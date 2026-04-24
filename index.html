@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CIT Compliance Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #1a2535;
+      --navy-mid: #263347;
+      --navy-light: #334560;
+      --orange: #C76C33;
+      --orange-light: #e8864d;
+      --cream: #f5f2ed;
+      --cream-dark: #ece8e1;
+      --text: #1a2535;
+      --text-mid: #4a5568;
+      --text-light: #8a95a3;
+      --border: rgba(26,37,53,0.12);
+      --border-mid: rgba(26,37,53,0.22);
+      --green: #2d6a4f;
+      --amber: #92400e;
+      --red: #991b1b;
+      --green-bg: #d1fae5;
+      --amber-bg: #fef3c7;
+      --red-bg: #fee2e2;
+      --radius: 8px;
+      --radius-lg: 12px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 14px;
+    }
+
+    /* ── SETUP SCREEN ── */
+    #setupScreen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      background: var(--navy);
+    }
+    .setup-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      max-width: 480px;
+      width: 100%;
+    }
+    .setup-card h1 {
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+    .setup-card .subtitle {
+      font-size: 13px;
+      color: var(--text-mid);
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+    .setup-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-mid);
+      margin-bottom: 6px;
+      display: block;
+    }
+    .setup-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius);
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      color: var(--text);
+      background: var(--cream);
+      margin-bottom: 1.25rem;
+    }
+    .setup-input:focus { outline: none; border-color: var(--orange); }
+    .setup-hint {
+      font-size: 11px;
+      color: var(--text-light);
+      margin-top: -1rem;
+      margin-bottom: 1.25rem;
+      line-height: 1.6;
+    }
+    .setup-hint a { color: var(--orange); }
+    .btn-setup {
+      width: 100%;
+      padding: 11px;
+      background: var(--navy);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .btn-setup:hover { background: var(--navy-mid); }
+
+    /* ── APP SHELL ── */
+    #app { display: none; }
+
+    .topbar {
+      background: var(--navy);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: white;
+      letter-spacing: 0.01em;
+    }
+    .topbar-title span { color: var(--orange); }
+    .topbar-key {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      cursor: pointer;
+    }
+    .topbar-key:hover { color: rgba(255,255,255,0.7); }
+
+    .main { max-width: 980px; margin: 0 auto; padding: 2rem; }
+
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+    .tab {
+      padding: 10px 20px;
+      font-size: 13px;
+      color: var(--text-light);
+      cursor: pointer;
+      border: none;
+      background: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      font-family: 'DM Sans', sans-serif;
+      transition: color 0.15s;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--navy); font-weight: 500; border-bottom-color: var(--orange); }
+
+    /* ── RESEARCH TAB ── */
+    .notice {
+      background: white;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--orange);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--text-mid);
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+
+    .domain-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 1.25rem;
+    }
+    .pill {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      border: 1px solid var(--border-mid);
+      background: white;
+      color: var(--text-mid);
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s;
+    }
+    .pill:hover { border-color: var(--orange); color: var(--orange); }
+    .pill.active { background: var(--navy); color: white; border-color: var(--navy); }
+
+    .search-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+    .search-row select {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      background: white;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .search-row select:focus { outline: none; border-color: var(--orange); }
+
+    .btn {
+      padding: 10px 18px;
+      background: var(--navy);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .btn:hover { background: var(--navy-mid); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn-outline {
+      background: white;
+      color: var(--navy);
+      border: 1px solid var(--border-mid);
+    }
+    .btn-outline:hover { background: var(--cream); border-color: var(--navy); }
+
+    .result-area {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      min-height: 180px;
+    }
+    .result-area.empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-light);
+      font-size: 13px;
+    }
+    .result-text {
+      font-size: 13px;
+      line-height: 1.8;
+      color: var(--text);
+      white-space: pre-wrap;
+    }
+    .result-text strong { font-weight: 500; color: var(--navy); }
+
+    .save-row {
+      margin-top: 1.25rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .save-row span { font-size: 12px; color: var(--text-light); }
+
+    /* ── REGISTRY TAB ── */
+    .summary-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+    .metric {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+    .metric-label { font-size: 11px; color: var(--text-light); margin-bottom: 4px; }
+    .metric-value { font-size: 26px; font-weight: 300; color: var(--navy); }
+
+    .filter-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1.25rem;
+    }
+    .filter-row label { font-size: 12px; color: var(--text-light); }
+    .filter-row select {
+      padding: 6px 10px;
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      background: white;
+    }
+
+    .state-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+      gap: 8px;
+      margin-bottom: 1.5rem;
+    }
+    .state-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .state-card:hover { border-color: var(--orange); box-shadow: 0 2px 8px rgba(199,108,51,0.1); }
+    .state-name { font-size: 12px; font-weight: 500; color: var(--navy); }
+    .state-meta { font-size: 11px; color: var(--text-light); margin-top: 3px; }
+
+    .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: middle; }
+    .dot-green { background: var(--green); }
+    .dot-amber { background: #d97706; }
+    .dot-red { background: var(--red); }
+    .dot-gray { background: #cbd5e0; }
+
+    .detail-panel {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      margin-top: 0.5rem;
+    }
+    .detail-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
+    .detail-head h3 { font-size: 16px; font-weight: 500; }
+    .detail-close {
+      background: none;
+      border: none;
+      font-size: 18px;
+      color: var(--text-light);
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+    .section-content {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.75;
+      max-height: 240px;
+      overflow-y: auto;
+      margin-bottom: 1.25rem;
+      white-space: pre-wrap;
+      padding-right: 4px;
+    }
+
+    /* ── MONITOR TAB ── */
+    .monitor-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
+    .monitor-head h2 { font-size: 15px; font-weight: 500; }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 6px;
+    }
+    .check-label { font-size: 13px; font-weight: 500; flex: 1; }
+    .check-date { font-size: 11px; color: var(--text-light); white-space: nowrap; }
+    .overdue { color: #d97706; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 500;
+    }
+    .badge-overdue { background: var(--amber-bg); color: var(--amber); }
+    .badge-current { background: var(--green-bg); color: var(--green); }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 2rem;
+      color: var(--text-light);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    /* ── SPINNER ── */
+    .spinner {
+      display: inline-block;
+      width: 11px;
+      height: 11px;
+      border: 1.5px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-right: 7px;
+      vertical-align: middle;
+    }
+    .spinner-dark {
+      border-color: rgba(26,37,53,0.15);
+      border-top-color: var(--navy);
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     SETUP SCREEN
+══════════════════════════════════════════ -->
+<div id="setupScreen">
+  <div class="setup-card">
+    <h1>CIT Compliance Tracker</h1>
+    <p class="subtitle">State requirements for restraint use, crisis management procedures, and crisis intervention training — with monthly monitoring.</p>
+
+    <label class="setup-label">Anthropic API Key</label>
+    <input type="password" id="apiKeyInput" class="setup-input" placeholder="sk-ant-api03-..." />
+    <p class="setup-hint">
+      Get your key at <a href="https://console.anthropic.com/keys" target="_blank">console.anthropic.com/keys</a>.
+      Your key is stored only in your browser's localStorage and never sent anywhere except directly to the Anthropic API.
+    </p>
+
+    <button class="btn-setup" onclick="saveKey()">Start using the tracker →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════════ -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-title">CIT <span>Compliance Tracker</span></div>
+    <div class="topbar-key" onclick="resetKey()" title="Click to change API key">API key: ••••••••  ✕</div>
+  </div>
+
+  <div class="main">
+    <div class="tabs" id="tabBar">
+      <button class="tab active" data-tab="search">Research</button>
+      <button class="tab" data-tab="registry">State registry</button>
+      <button class="tab" data-tab="monitor">Monthly monitor</button>
+    </div>
+
+    <!-- RESEARCH TAB -->
+    <div id="tab-search">
+      <div class="notice">
+        Results are drawn from Claude's training data on state statutes, administrative codes, and agency regulations.
+        Verify critical compliance decisions against primary sources — the state agency website is included in every summary.
+      </div>
+
+      <div class="domain-pills" id="domainPills">
+        <span class="pill active" data-domain="all">All domains</span>
+        <span class="pill" data-domain="restraints">Physical restraints</span>
+        <span class="pill" data-domain="seclusion">Seclusion / isolation</span>
+        <span class="pill" data-domain="cit">CIT training requirements</span>
+        <span class="pill" data-domain="deescalation">De-escalation mandates</span>
+        <span class="pill" data-domain="documentation">Documentation / reporting</span>
+        <span class="pill" data-domain="parental">Parental notification</span>
+      </div>
+
+      <div class="search-row">
+        <select id="stateSelect">
+          <option value="">— Select a state or territory —</option>
+          <optgroup label="Northeast">
+            <option>Connecticut</option><option>Maine</option><option>Massachusetts</option>
+            <option>New Hampshire</option><option>New Jersey</option><option>New York</option>
+            <option>Pennsylvania</option><option>Rhode Island</option><option>Vermont</option>
+          </optgroup>
+          <optgroup label="Southeast">
+            <option>Alabama</option><option>Arkansas</option><option>Florida</option>
+            <option>Georgia</option><option>Kentucky</option><option>Louisiana</option>
+            <option>Mississippi</option><option>North Carolina</option><option>South Carolina</option>
+            <option>Tennessee</option><option>Virginia</option><option>West Virginia</option>
+          </optgroup>
+          <optgroup label="Midwest">
+            <option>Illinois</option><option>Indiana</option><option>Iowa</option>
+            <option>Kansas</option><option>Michigan</option><option>Minnesota</option>
+            <option>Missouri</option><option>Nebraska</option><option>North Dakota</option>
+            <option>Ohio</option><option>South Dakota</option><option>Wisconsin</option>
+          </optgroup>
+          <optgroup label="Southwest">
+            <option>Arizona</option><option>New Mexico</option><option>Oklahoma</option><option>Texas</option>
+          </optgroup>
+          <optgroup label="West">
+            <option>Alaska</option><option>California</option><option>Colorado</option>
+            <option>Hawaii</option><option>Idaho</option><option>Montana</option>
+            <option>Nevada</option><option>Oregon</option><option>Utah</option>
+            <option>Washington</option><option>Wyoming</option>
+          </optgroup>
+          <optgroup label="Other">
+            <option>Delaware</option><option>Maryland</option><option>District of Columbia</option>
+          </optgroup>
+        </select>
+        <button class="btn" id="searchBtn" onclick="runSearch()">Research →</button>
+      </div>
+
+      <div class="result-area empty" id="resultArea">
+        <span>Select a state and domain, then click Research</span>
+      </div>
+    </div>
+
+    <!-- REGISTRY TAB -->
+    <div id="tab-registry" style="display:none;">
+      <div class="summary-row">
+        <div class="metric"><div class="metric-label">States tracked</div><div class="metric-value" id="metricTotal">0</div></div>
+        <div class="metric"><div class="metric-label">Up to date</div><div class="metric-value" id="metricCurrent">0</div></div>
+        <div class="metric"><div class="metric-label">Need review</div><div class="metric-value" id="metricStale">0</div></div>
+      </div>
+      <div class="filter-row">
+        <label>Show:</label>
+        <select id="filterStatus" onchange="renderRegistry()">
+          <option value="all">All states</option>
+          <option value="current">Up to date</option>
+          <option value="stale">Needs review (30+ days)</option>
+          <option value="empty">Not yet researched</option>
+        </select>
+      </div>
+      <div class="state-grid" id="stateGrid"></div>
+      <div class="detail-panel" id="detailPanel" style="display:none;">
+        <div class="detail-head">
+          <h3 id="detailStateName"></h3>
+          <button class="detail-close" onclick="document.getElementById('detailPanel').style.display='none'">×</button>
+        </div>
+        <div id="detailContent"></div>
+      </div>
+    </div>
+
+    <!-- MONITOR TAB -->
+    <div id="tab-monitor" style="display:none;">
+      <div class="monitor-head">
+        <h2>Monthly compliance checks</h2>
+        <button class="btn" id="runAllBtn" onclick="runAllOverdue()">Run all overdue →</button>
+      </div>
+      <div id="monitorContent"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── CONSTANTS ──────────────────────────────────────────────────
+
+  const STATES = ['Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut',
+    'Delaware','District of Columbia','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana',
+    'Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan',
+    'Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire',
+    'New Jersey','New Mexico','New York','North Carolina','North Dakota','Ohio','Oklahoma',
+    'Oregon','Pennsylvania','Rhode Island','South Carolina','South Dakota','Tennessee','Texas',
+    'Utah','Vermont','Virginia','Washington','West Virginia','Wisconsin','Wyoming'];
+
+  const DOMAIN_LABELS = {
+    all: 'all crisis intervention regulation domains (physical restraints, seclusion, CIT training, de-escalation, documentation, and parental notification)',
+    restraints: 'physical restraint use regulations',
+    seclusion: 'seclusion and isolation policies',
+    cit: 'crisis intervention training (CIT) certification and requirements',
+    deescalation: 'de-escalation training mandates',
+    documentation: 'documentation and incident reporting requirements',
+    parental: 'parental and guardian notification requirements'
+  };
+
+  const DOMAIN_SHORT = {
+    all: 'All domains', restraints: 'Physical restraints', seclusion: 'Seclusion / isolation',
+    cit: 'CIT training', deescalation: 'De-escalation', documentation: 'Documentation', parental: 'Parental notification'
+  };
+
+  const STORAGE_KEY = 'cit_tracker_registry';
+  const API_KEY_STORAGE = 'cit_tracker_apikey';
+
+  // ── STATE ──────────────────────────────────────────────────────
+
+  let registry = {};
+  let activeDomain = 'all';
+  let apiKey = '';
+
+  // ── INIT ───────────────────────────────────────────────────────
+
+  function init() {
+    const stored = localStorage.getItem(API_KEY_STORAGE);
+    if (stored) {
+      apiKey = stored;
+      showApp();
+    }
+    loadRegistry();
+  }
+
+  function saveKey() {
+    const val = document.getElementById('apiKeyInput').value.trim();
+    if (!val.startsWith('sk-ant-')) {
+      alert('That doesn\'t look like an Anthropic API key. It should start with sk-ant-');
+      return;
+    }
+    apiKey = val;
+    localStorage.setItem(API_KEY_STORAGE, apiKey);
+    showApp();
+  }
+
+  function showApp() {
+    document.getElementById('setupScreen').style.display = 'none';
+    document.getElementById('app').style.display = '';
+    renderRegistry();
+    renderMonitor();
+  }
+
+  function resetKey() {
+    if (!confirm('Remove your API key and return to setup?')) return;
+    localStorage.removeItem(API_KEY_STORAGE);
+    location.reload();
+  }
+
+  function loadRegistry() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) registry = JSON.parse(raw);
+    } catch(e) { registry = {}; }
+  }
+
+  function saveRegistryToStorage() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(registry));
+  }
+
+  // ── TABS ───────────────────────────────────────────────────────
+
+  document.getElementById('tabBar').addEventListener('click', e => {
+    if (!e.target.matches('.tab')) return;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    e.target.classList.add('active');
+    ['search','registry','monitor'].forEach(id => {
+      document.getElementById('tab-'+id).style.display = e.target.dataset.tab === id ? '' : 'none';
+    });
+    if (e.target.dataset.tab === 'registry') renderRegistry();
+    if (e.target.dataset.tab === 'monitor') renderMonitor();
+  });
+
+  // ── DOMAIN PILLS ──────────────────────────────────────────────
+
+  document.getElementById('domainPills').addEventListener('click', e => {
+    if (!e.target.matches('.pill')) return;
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    e.target.classList.add('active');
+    activeDomain = e.target.dataset.domain;
+  });
+
+  // ── RESEARCH ──────────────────────────────────────────────────
+
+  async function callClaude(prompt) {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-opus-4-5',
+        max_tokens: 2000,
+        system: 'You are a regulatory compliance specialist with deep expertise in behavioral health law, special education law, and crisis intervention regulations across all US states. You have comprehensive knowledge of state statutes, administrative codes, and agency regulations. Provide thorough, specific, well-organized responses. Always include statute or code citations where you know them. Structure your response using **Bold Headers** for each section. Flag anything that may have changed recently or requires verification.',
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API error ${resp.status}`);
+    }
+    const data = await resp.json();
+    return data.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
+  }
+
+  async function runSearch() {
+    const state = document.getElementById('stateSelect').value;
+    if (!state) { alert('Please select a state first.'); return; }
+
+    const btn = document.getElementById('searchBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Researching…';
+
+    const area = document.getElementById('resultArea');
+    area.classList.remove('empty');
+    area.innerHTML = '<div style="font-size:12px;color:var(--text-light);"><span class="spinner spinner-dark"></span>Querying Claude for ' + state + ' regulations…</div>';
+
+    const domainLabel = DOMAIN_LABELS[activeDomain];
+
+    const prompt = `Provide a comprehensive crisis intervention compliance summary for ${state} covering ${domainLabel}.
+
+Structure your response with these bold headers:
+
+**Governing Framework**
+Which state agency oversees these regulations? What are the primary governing statutes and administrative code sections? (include specific citation numbers)
+
+**Physical Restraint Requirements**
+- Permitted and explicitly prohibited techniques
+- Who may apply restraints (required training/certification)
+- Conditions required before restraint may be used
+- Time limits, positional restrictions, monitoring requirements
+
+**Seclusion / Isolation Policies**
+- Whether seclusion is permitted and under what conditions
+- Physical requirements for seclusion spaces
+- Time limits, observation requirements, debriefing requirements
+
+**Crisis Intervention Training (CIT) Requirements**
+- Mandatory training programs or state-approved provider lists
+- Roles and settings required to have trained staff
+- Initial training hours and renewal/recertification frequency
+- Named approved programs (e.g., CPI, MANDT, ProACT, TCI, Ukeru, NAPPI)
+- Any state-developed curricula
+
+**De-escalation Requirements**
+- Specific de-escalation protocols required by regulation
+- Training mandates separate from restraint/seclusion training
+
+**Documentation & Incident Reporting**
+- Incident report timeline (how soon after incident)
+- Required report recipients (parents, state agency, etc.)
+- What must be included in reports
+- Record retention requirements
+
+**Parental / Guardian Notification**
+- Notification timeline after restraint or seclusion incident
+- Required method of notification
+- Required disclosures
+
+**Settings Covered**
+List which settings these rules apply to: public schools, private schools, residential treatment facilities, psychiatric hospitals, community mental health centers, group homes, juvenile justice, etc.
+
+**Key Statute & Code Citations**
+List all specific statute numbers, administrative code sections, and regulatory guidance documents referenced.
+
+**State Agency & Verification**
+Name the relevant state agency (or agencies) and provide their website URL where practitioners can verify current rules.
+
+**⚠ Verification Flags**
+Note anything you are less certain about, anything that may have changed recently, or any areas where federal rules (IDEA, CMS, Joint Commission) may interact with or supersede state rules.`;
+
+    try {
+      const text = await callClaude(prompt);
+      window._lastResult = { state, domain: activeDomain, text };
+
+      area.innerHTML = `<div class="result-text">${formatText(text)}</div>
+        <div class="save-row">
+          <span>Save to registry for monthly monitoring?</span>
+          <button class="btn btn-sm" onclick="saveResult('${esc(state)}', '${activeDomain}', this)">Save to registry</button>
+        </div>`;
+    } catch(err) {
+      area.innerHTML = `<div style="color:var(--red);font-size:13px;line-height:1.7;">
+        <strong>Error:</strong> ${esc(err.message)}<br><br>
+        Check that your API key is valid and has sufficient credits at
+        <a href="https://console.anthropic.com" target="_blank" style="color:var(--orange);">console.anthropic.com</a>.
+      </div>`;
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Research →';
+  }
+
+  async function saveResult(state, domain, btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Saving…';
+    const text = window._lastResult?.state === state ? window._lastResult.text : '';
+    if (!registry[state]) registry[state] = { name: state };
+    registry[state][domain] = { content: text, lastChecked: new Date().toISOString() };
+    registry[state].lastChecked = new Date().toISOString();
+    saveRegistryToStorage();
+    btn.textContent = '✓ Saved';
+    btn.disabled = true;
+    renderRegistry();
+    renderMonitor();
+  }
+
+  // ── REGISTRY ──────────────────────────────────────────────────
+
+  function renderRegistry() {
+    const filter = document.getElementById('filterStatus').value;
+    const now = new Date();
+    let total = 0, current = 0, stale = 0;
+    const grid = document.getElementById('stateGrid');
+    grid.innerHTML = '';
+
+    STATES.forEach(s => {
+      const entry = registry[s];
+      let status = 'empty', dotClass = 'dot-gray', dateStr = 'Not researched';
+
+      if (entry?.lastChecked) {
+        total++;
+        const days = Math.floor((now - new Date(entry.lastChecked)) / 86400000);
+        if (days < 30) {
+          status = 'current'; dotClass = 'dot-green'; current++;
+          dateStr = days === 0 ? 'Today' : days + 'd ago';
+        } else {
+          status = 'stale'; dotClass = 'dot-red'; stale++;
+          dateStr = days + 'd ago';
+        }
+      }
+
+      if (filter !== 'all' && filter !== status) return;
+
+      const card = document.createElement('div');
+      card.className = 'state-card';
+      card.innerHTML = `<div class="state-name"><span class="dot ${dotClass}"></span>${s}</div><div class="state-meta">${dateStr}</div>`;
+      card.onclick = () => showDetail(s);
+      grid.appendChild(card);
+    });
+
+    document.getElementById('metricTotal').textContent = total;
+    document.getElementById('metricCurrent').textContent = current;
+    document.getElementById('metricStale').textContent = stale;
+  }
+
+  function showDetail(state) {
+    const entry = registry[state];
+    const panel = document.getElementById('detailPanel');
+    document.getElementById('detailStateName').textContent = state;
+    panel.style.display = '';
+
+    if (!entry) {
+      document.getElementById('detailContent').innerHTML = `<div style="font-size:13px;color:var(--text-light);">
+        No data yet. <button class="btn btn-sm" style="margin-left:10px;" onclick="switchToSearch('${esc(state)}')">Research this state →</button></div>`;
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      return;
+    }
+
+    const domains = Object.keys(entry).filter(k => k !== 'lastChecked' && k !== 'name' && entry[k]?.content);
+    let html = domains.map(d => {
+      const checked = new Date(entry[d].lastChecked).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      return `<div class="section-label">${DOMAIN_SHORT[d] || d} — last checked ${checked}</div>
+        <div class="section-content">${formatText(entry[d].content)}</div>`;
+    }).join('');
+
+    html += `<div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-sm" onclick="recheckState('${esc(state)}', this)">Re-check now →</button>
+    </div>`;
+
+    document.getElementById('detailContent').innerHTML = html;
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function switchToSearch(state) {
+    document.querySelector('[data-tab=search]').click();
+    document.getElementById('stateSelect').value = state;
+  }
+
+  // ── MONITOR ───────────────────────────────────────────────────
+
+  function renderMonitor() {
+    const container = document.getElementById('monitorContent');
+    const now = new Date();
+    const tracked = Object.keys(registry)
+      .filter(k => registry[k].lastChecked)
+      .sort((a, b) => new Date(registry[a].lastChecked) - new Date(registry[b].lastChecked));
+
+    if (!tracked.length) {
+      container.innerHTML = `<div class="empty-state">
+        <p>No states being monitored yet.</p>
+        <p>Research a state and save it to the registry —<br>it will appear here for monthly tracking.</p>
+      </div>`;
+      return;
+    }
+
+    container.innerHTML = tracked.map(s => {
+      const days = Math.floor((now - new Date(registry[s].lastChecked)) / 86400000);
+      const overdue = days >= 30;
+      const dotClass = days < 30 ? 'dot-green' : days < 60 ? 'dot-amber' : 'dot-red';
+      const badge = overdue
+        ? `<span class="badge badge-overdue">Overdue</span>`
+        : `<span class="badge badge-current">Current</span>`;
+      const dateLabel = `Last checked ${days === 0 ? 'today' : days + 'd ago'}`;
+      return `<div class="check-row">
+        <span class="dot ${dotClass}"></span>
+        <span class="check-label">${s}</span>
+        ${badge}
+        <span class="check-date ${overdue ? 'overdue' : ''}">${dateLabel}</span>
+        <button class="btn btn-sm btn-outline" onclick="recheckState('${esc(s)}', this)">Re-check →</button>
+      </div>`;
+    }).join('');
+  }
+
+  async function recheckState(state, btn) {
+    const entry = registry[state];
+    if (!entry) return;
+    const domains = Object.keys(entry).filter(k => k !== 'lastChecked' && k !== 'name');
+    if (!domains.length) return;
+
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner spinner-dark"></span>Checking…'; }
+
+    for (const domain of domains) {
+      const prompt = `Update the crisis intervention compliance summary for ${state} covering ${DOMAIN_LABELS[domain] || domain}.
+
+Review what you know about ${state}'s current regulations and provide a refreshed, complete summary. Note any changes from recent legislative sessions, new agency guidance, or amended regulations. If the framework is unchanged, confirm that and restate the current requirements clearly.
+
+Use the same section structure as before: Governing Framework, Physical Restraint Requirements, Seclusion/Isolation, CIT Training Requirements, De-escalation, Documentation & Reporting, Parental Notification, Settings Covered, Key Citations, State Agency & Verification, and Verification Flags.`;
+      try {
+        const text = await callClaude(prompt);
+        registry[state][domain] = { content: text, lastChecked: new Date().toISOString() };
+      } catch(e) { console.error(e); }
+    }
+
+    registry[state].lastChecked = new Date().toISOString();
+    saveRegistryToStorage();
+    renderRegistry();
+    renderMonitor();
+    if (btn) { btn.disabled = false; btn.textContent = 'Re-check →'; }
+    if (document.getElementById('detailPanel').style.display !== 'none') showDetail(state);
+  }
+
+  async function runAllOverdue() {
+    const now = new Date();
+    const overdue = Object.keys(registry).filter(s =>
+      registry[s].lastChecked &&
+      Math.floor((now - new Date(registry[s].lastChecked)) / 86400000) >= 30
+    );
+    if (!overdue.length) { alert('All tracked states are current — nothing overdue.'); return; }
+    const btn = document.getElementById('runAllBtn');
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner"></span>Checking ${overdue.length} state${overdue.length > 1 ? 's' : ''}…`;
+    for (const s of overdue) await recheckState(s, null);
+    btn.disabled = false;
+    btn.textContent = 'Run all overdue →';
+    renderMonitor();
+  }
+
+  // ── HELPERS ───────────────────────────────────────────────────
+
+  function esc(s) { return s.replace(/'/g, "\\'"); }
+
+  function formatText(s) {
+    return s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  }
+
+  // ── START ─────────────────────────────────────────────────────
+  init();
+</script>
+</body>
+</html>
